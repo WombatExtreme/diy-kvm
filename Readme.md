@@ -47,3 +47,43 @@ diy-kvm/
 ├── templates/          # UI (index.html)
 ├── docs/               # Auto-generated Debug Logs
 └── screenshots/        # User-captured Screen Grabs
+
+---
+
+## 🛠️ SCRIPTS & AUTOMATION GUIDE
+The following scripts manage the lifecycle, health, and maintenance of the Wombat-KVM.
+
+### 1. `deploy_kvm.sh` (The Master Setup)
+* **Purpose:** One-time setup of hardware permissions, Docker builds, and Crontab scheduling.
+* **Usage:** `bash deploy_kvm.sh`
+* **Action:** Sets `dialout/video` groups and initializes the Watchdog.
+
+### 2. `watchdog.sh` (The Health Monitor)
+* **Purpose:** Runs in the background every 60 seconds to ensure the MJPEG stream is active.
+* **Usage:** Automated via Crontab (or `bash watchdog.sh` for manual testing).
+* **Action:** Restarts the `kvm` container if the web port (8080) returns a 404/500 error.
+
+### 3. `maintenance.sh` (The Janitor)
+* **Purpose:** Prevents the D520's internal storage from filling up during the Beta phase.
+* **Usage:** `bash maintenance.sh` (Scheduled for Sundays at 00:00).
+* **Action:** Deletes screenshots/logs older than 7 days and clears the Docker build cache.
+
+### 4. `build_wombat.sh` (The Rebuilder)
+* **Purpose:** Completely wipes the local directory and reconstructs the file structure.
+* **Usage:** `bash build_wombat.sh`
+* **Warning:** Use only if you need a "factory reset" of the project files.
+
+---
+
+## 🔬 FINAL BETA CHECKLIST (3-Day Burn-In)
+*Execute these tests before moving from BETA to PRODUCTION.*
+
+- [ ] **Thermal Soak:** Run for 24 hours with the lid closed. Check `GEN DEBUG LOG` for CPU temps.
+- [ ] **HID Buffer Test:** Rapidly type in the Mobile UI. Ensure no "stuck" keys or lag.
+- [ ] **Hard Power Cycle:** Pull the D520 power plug. Verify all 3 services (Video, API, Netboot) auto-start.
+- [ ] **Watchdog Test:** Manually run `docker compose stop kvm`. Verify the system restarts within 60s.
+- [ ] **Audio Validation:** Confirm "Startup" chirp, "Login" beep, and "Reboot" descending tone.
+
+---
+**Wombat Extreme Technologies**
+*30 Years of PC Excellence. Smart Tech Done Right.*
