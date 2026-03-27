@@ -8,7 +8,7 @@ A professional-grade, self-healing KVM-over-IP appliance repurposed from legacy 
 To deploy the **Wombat-KVM** on a fresh Debian 13 "Trixie" host, copy and paste this command into your terminal:
 
 ```bash
-curl -sSL [https://raw.githubusercontent.com/](https://raw.githubusercontent.com/)WombatExtreme/diy-kvm/main/deploy_kvm.sh | bash
+curl -sSL [https://raw.githubusercontent.com/](https://raw.githubusercontent.com/)WombatExtreme/diy-kvm/main/deploy_kvm.sh | bash ```
 
 ---
 
