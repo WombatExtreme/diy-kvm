@@ -1,94 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wombat-KVM BETA v1.9</title>
-	<link rel="manifest" href="/manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="apple-touch-icon" href="/static/wombat_logo.png">
-
+    <title>Wombat Extreme KVM</title>
     <style>
-        body { background:#0a0a0a; color:#0f0; font-family:monospace; margin:0; text-align:center; overflow-x:hidden; }
+        body { background: #1a1a1a; color: white; font-family: 'Courier New', Courier, monospace; text-align: center; padding: 20px; }
+        #kvm-container { margin: 20px auto; width: 90%; max-width: 1280px; border: 5px solid #333; position: relative; background: #000; }
+        #video-feed { width: 100%; display: block; }
         
-        /* Dashboard Header */
-        #dash { background:#1a1a1a; padding:10px; border-bottom:2px solid #333; display:flex; justify-content:center; gap:20px; font-size:12px; flex-wrap: wrap; }
-        #dash span { color: #fff; font-weight: bold; }
-        #beta-tag { color: #ffcc00; font-weight: bold; width: 100%; margin-bottom: 5px; font-size: 14px; }
-
-        /* Video Stream Container */
-        #stream { max-width:100%; height:auto; border:4px solid #333; margin-top:10px; background:#000; box-shadow: 0 0 20px rgba(0,255,0,0.1); }
+        .controls { margin-top: 20px; padding: 15px; background: #222; border-radius: 8px; display: inline-block; }
         
-        /* Control Grid */
-        .controls { padding:15px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
-        .btn { background:#222; color:#0f0; border:1px solid #0f0; padding:12px 20px; cursor:pointer; font-weight:bold; text-transform:uppercase; transition: 0.2s; }
-        .btn:hover { background:#0f0; color:#000; }
-        
-        /* Color Variants */
-        .danger { border-color:#ff3333; color:#ff3333; }
-        .danger:hover { background:#ff3333; color:#fff; }
-        .warn { border-color:#ffa500; color:#ffa500; }
-        .warn:hover { background:#ffa500; color:#000; }
-        .info { border-color:#0af; color:#0af; }
-        .info:hover { background:#0af; color:#000; }
-
-        /* Mobile Text Area */
-        #pbox { width:90%; background:#111; color:#0f0; border:1px solid #333; padding:10px; margin: 15px auto; border-radius: 5px; display: block; }
-
-        /* Branded Splash Screen */
-        #splash { position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; animation: fadeOut 1s ease 4s forwards; }
-        #splash img { max-width:70%; max-height: 250px; margin-bottom: 20px; }
-        @keyframes fadeOut { to { opacity:0; visibility:hidden; pointer-events:none; } }
-
-        /* Mobile Responsiveness */
-        @media (max-width:800px) { 
-            .btn { width:95%; padding:18px; font-size:16px; margin-bottom: 5px; } 
+        .btn-update { 
+            background-color: #f39c12; color: black; border: none; padding: 10px 20px; 
+            font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase;
         }
+        .btn-update:hover { background-color: #e67e22; }
+        
+        .status-bar { margin-bottom: 10px; font-size: 14px; }
+        .led { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .led-green { background-color: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
     </style>
 </head>
 <body>
-
-    <div id="splash">
-        <img src="/static/wombat_logo.png" alt="WombatExtreme">
-        <h1 style="color:#fff; letter-spacing: 3px;">SMART TECH DONE RIGHT</h1>
-        <p style="color:#ffcc00;">[ LOADING BETA v1.9 ]</p>
+    <h2>WOMBAT EXTREME KVM <small style="color: #666;">v1.0-BURNIN</small></h2>
+    
+    <div class="status-bar">
+        <span class="led led-green"></span> SYSTEM: <span id="ip-display">DETECTING...</span>
+    </div>
+    
+    <div id="kvm-container">
+        <img id="video-feed" src="" alt="Connecting to uStreamer...">
     </div>
 
-    <div id="dash">
-        <div id="beta-tag">⚠️ BETA TESTING MODE - VERIFY HARDWARE STATUS ⚠️</div>
-        <div>CPU: <span id="c">--</span></div> 
-        <div>RAM: <span id="r">--</span></div> 
-        <div>PWR: <span id="p">--</span></div>
-        <button class="btn info" style="padding: 5px 10px; font-size: 10px;" onclick="triggerUpdate()">🔄 UPDATE SOURCE</button>
+    <div class="controls">
+        <button class="btn-update" onclick="forceUpdate()">Refresh Hardware Feed</button>
+        <p style="font-size: 10px; color: #777; margin-top: 10px;">72-HOUR TEST IN PROGRESS</p>
     </div>
-	
-	<div id="hw-indicator" style="display: flex; align-items: center; gap: 10px;">
-    <span id="status-led" style="height: 12px; width: 12px; background-color: gray; border-radius: 50%; display: inline-block;"></span>
-    <span id="status-text" style="font-family: monospace; color: #fff;">CHECKING HW...</span>
-</div>
 
-<script>
-function updateStatus() {
-    fetch('/api/hw_status')
-        .then(response => response.json())
-        .then(data => {
-            const led = document.getElementById('status-led');
-            const text = document.getElementById('status-text');
-            if (data.status === 'online') {
-                led.style.backgroundColor = '#2ecc71'; // Wombat Green
-                text.innerText = 'CH340 CONNECTED';
-            } else {
-                led.style.backgroundColor = '#e74c3c'; // Error Red
-                text.innerText = 'HARDWARE DISCONNECTED';
-            }
+    <script>
+        // Automatically find the D520's IP
+        const host = window.location.hostname;
+        const port = window.location.port || '5000';
+        
+        document.getElementById('ip-display').innerText = `${host}:${port}`;
+        
+        // Point the video to the uStreamer engine (Port 8000)
+        const videoElement = document.getElementById('video-feed');
+        videoElement.src = `http://${host}:8000/stream`;
+
+        function forceUpdate() {
+            console.log("Forcing hardware refresh...");
+            videoElement.src = `http://${host}:8000/stream?t=${new Date().getTime()}`;
+        }
+
+        // Mouse Tracking Logic
+        document.getElementById('kvm-container').addEventListener('mousemove', function(e) {
+            const rect = e.target.getBoundingClientRect();
+            const x = Math.round(e.clientX - rect.left);
+            const y = Math.round(e.clientY - rect.top);
+            
+            // Sending to Flask on Port 5000
+            fetch(`http://${host}:${port}/send_mouse`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ x: x, y: y })
+            }).catch(err => console.error("Serial Link Down:", err));
         });
-}
-
-// Check every 5 seconds
-setInterval(updateStatus, 5000);
-updateStatus(); 
-</script>
+    </script>
+</body>
+</html>

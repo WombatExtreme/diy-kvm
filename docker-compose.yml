@@ -1,12 +1,14 @@
 services:
-  kvm:
-    image: wombat-kvm-local
+  wombat-kvm:
     build: .
     container_name: wombat-kvm
     restart: always
-    ports:
-      - "5000:5000"  # Flask Web UI
-      - "8080:8080"  # uStreamer Video
-    devices:
-      - "/dev/ttyUSB0:/dev/ttyUSB0" # Your CH340 Bridge
     privileged: true
+    network_mode: host
+    devices:
+      - "/dev/video0:/dev/video0"
+      - "/dev/video1:/dev/video1"
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+    ports:
+      - "5000:5000"
+      - "8000:8000"
