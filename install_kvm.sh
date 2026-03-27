@@ -1,64 +1,61 @@
 #!/bin/bash
 # =================================================================
-# DIY KVM INSTALLER v1.1 - The "Master Edition"
-# Optimized for: Debian 13.4 Stable (Trixie) 
-# Support: Dell Latitude D520 / any x86_64 Linux PC
+# DIY KVM INSTALLER v1.2 - The "Bulletproof" Edition
+# Optimized for: Debian 13.4 (Trixie) / Dell Latitude D520
+# Fixes: Docker/Tailscale Repo issues & non-free-software typos
 # =================================================================
 
 set -e
 
 echo "--- 🛠 Starting Universal DIY KVM Installation ---"
 
-# 1. Identify User Context
+# 1. Self-Repair: Fix 'non-free-software' typo in Debian sources
+echo "--- 🩹 Repairing System Sources List ---"
+sudo sed -i 's/non-free-software/non-free/g' /etc/apt/sources.list || true
+sudo apt-get update
+
+# 2. Identify User Context
 CURRENT_USER=$USER
 USER_HOME=$HOME
 PROJECT_DIR="$USER_HOME/diy-kvm"
 
-echo "✅ Target User: $CURRENT_USER"
-echo "✅ Project Directory: $PROJECT_DIR"
-
-# 2. Hardware Validation (Dynamic Detection)
+# 3. Hardware Validation
 echo "--- 🔍 Scanning for Hardware ---"
 VIDEO_DEV=$(ls /dev/video* 2>/dev/null | head -n 1 || true)
 SERIAL_DEV=$(ls /dev/ttyUSB* 2>/dev/null | head -n 1 || true)
 
 if [ -z "$VIDEO_DEV" ] || [ -z "$SERIAL_DEV" ]; then
-    echo "❌ ERROR: Hardware missing!"
-    echo "   Ensure your HDMI Capture and CH340 adapter are plugged in."
+    echo "❌ ERROR: Hardware missing! Plug in HDMI Capture and CH340 adapter."
     exit 1
 fi
-echo "✅ Found Video: $VIDEO_DEV"
-echo "✅ Found Serial: $SERIAL_DEV"
+echo "✅ Found Video: $VIDEO_DEV | Serial: $SERIAL_DEV"
 
-# 3. System Prep & Dependencies
-echo "--- 📦 Installing System Dependencies ---"
-sudo apt-get update
-
-# Install basics needed to add new repos
+# 4. Inject Official Repositories (Docker & Tailscale)
+echo "--- 📦 Adding External Repositories ---"
 sudo apt-get install -y ca-certificates curl gnupg lsb-release
 
-# --- ADD DOCKER REPO ---
-echo "--- 🐳 Adding Docker Repository ---"
+# Add Docker GPG & Repo
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# --- ADD TAILSCALE REPO ---
-echo "--- 🔗 Adding Tailscale Repository ---"
+# Add Tailscale GPG & Repo
+sudo mkdir -p /usr/share/keyrings
 curl -fsSL https://pkgs.tailscale.com/stable/debian/$(lsb_release -cs).noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg > /dev/null
 curl -fsSL https://pkgs.tailscale.com/stable/debian/$(lsb_release -cs).tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
 
-# Now update and install everything
+# 5. Final Dependency Install
+echo "--- 📥 Installing Docker, Tailscale, and Tools ---"
 sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin tailscale aria2 build-essential
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin tailscale aria2 build-essential python3-flask python3-serial
 
-# 4. Create Project Directory Structure
+# 6. Create Project Structure
 mkdir -p "$PROJECT_DIR/templates"
 mkdir -p "$PROJECT_DIR/netboot/assets"
 mkdir -p "$PROJECT_DIR/netboot/config"
 cd "$PROJECT_DIR"
 
-# 5. Generate mappings.py
+# 7. Generate mappings.py
 cat <<EOF > mappings.py
 HID_MAP = {
     'a': 0x04, 'b': 0x05, 'c': 0x06, 'd': 0x07, 'e': 0x08, 'f': 0x09, 'g': 0x0a,
@@ -77,7 +74,7 @@ HID_MAP = {
 MOD_MAP = {'Control': 0x01, 'Shift': 0x02, 'Alt': 0x04, 'Meta': 0x08}
 EOF
 
-# 6. Generate app.py
+# 8. Generate app.py
 cat <<EOF > app.py
 from flask import Flask, render_template, request, jsonify
 import serial, time, os
@@ -131,7 +128,7 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 EOF
 
-# 7. Generate templates/index.html
+# 9. Generate templates/index.html
 cat <<EOF > templates/index.html
 <!DOCTYPE html>
 <html>
@@ -181,8 +178,59 @@ cat <<EOF > templates/index.html
 </html>
 EOF
 
-# 8. Generate Dockerfile
+# 10. Generate Dockerfile
 cat <<EOF > Dockerfile
 FROM debian:13-slim
 RUN apt-get update && apt-get install -y build-essential libevent-dev libjpeg-dev libbsd-dev python3 python3-pip python3-serial git python3-flask
-RUN git clone --
+RUN git clone --depth=1 https://github.com/pikvm/ustreamer /tmp/ustreamer && cd /tmp/ustreamer && make && cp ustreamer /usr/local/bin/
+WORKDIR /app
+COPY . .
+EXPOSE 8080 5000
+CMD ustreamer --device=$VIDEO_DEV --host=0.0.0.0 --port=8080 --format=mjpeg --resolution=1280x720 --desired-fps=30 & python3 app.py
+EOF
+
+# 11. Generate docker-compose.yml
+cat <<EOF > docker-compose.yml
+version: '3.8'
+services:
+  kvm:
+    build: .
+    privileged: true
+    network_mode: host
+    environment:
+      - SERIAL_PORT=$SERIAL_DEV
+    devices:
+      - "$VIDEO_DEV:$VIDEO_DEV"
+      - "$SERIAL_DEV:$SERIAL_DEV"
+    restart: always
+
+  netboot:
+    image: linuxserver/netbootxyz
+    container_name: netbootxyz
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./netboot/config:/config
+      - ./netboot/assets:/assets
+    restart: unless-stopped
+EOF
+
+# 12. Build and Start
+echo "--- 🚀 Starting DIY-KVM Services ---"
+sudo docker compose up -d --build
+
+# 13. Help Info
+IP_ADDR=$(hostname -I | awk '{print $1}')
+cat <<EOF > HELP.txt
+DIY KVM QUICK START GUIDE
+==================================================
+1. LOCAL ACCESS:  http://$IP_ADDR:5000
+2. TAILSCALE:     Run 'sudo tailscale up'
+3. LOGS:          cd $PROJECT_DIR && sudo docker compose logs -f
+==================================================
+EOF
+
+echo "--- ✅ SUCCESS! INSTALLATION COMPLETE ---"
+echo "Web UI: http://$IP_ADDR:5000"
