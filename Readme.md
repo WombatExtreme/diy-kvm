@@ -1,22 +1,16 @@
+# 🛠️ DIY-KVM: The Trash-to-Treasure Edition
 ![DIY KVM - Trash to Treasure](header.png)
 
-# DIY-KVM: Dell Latitude D520 Edition
+> **Turn any old x86 laptop into a professional-grade IP-KVM for ~$25.**
 
-A lightweight, high-performance IP-KVM (Keyboard, Video, Mouse) solution designed to run on legacy hardware. This project repurposes a Dell Latitude D520 (or similar) into a remote management appliance using Debian 13.4 Stable and Docker.
 
-## 🛠 Hardware Requirements
-* **Host:** Dell Latitude D520 (Core 2 Duo, 4GB RAM recommended).
-* **Video:** HDMI to USB Capture Card (USB 2.0).
-* **Control:** CH9329 HID Adapter + CH340 USB-to-Serial Bridge.
-* **OS:** Debian 13.4 (Trixie) Stable.
-🚀 Why DIY-KVM? (Comparison)
-Feature	Commercial KVM Stick	Wombat's DIY-KVM
-Cost	$150 - $450	~$25 (Adapters only)
-Remote Access	Local USB Only	Global (via Tailscale)
-Hardware	Proprietary / Fixed	Recycled Laptop (e-waste)
-OS Support	Limited Drivers	Driverless (HID standard)
-Video Engine	Basic	uStreamer (High FPS)
-Scalability	Single Device	Scriptable / Automated
+
+## ✨ Features
+* **Zero-Config Video:** Low-latency MJPEG streaming via uStreamer.
+* **HID Keyboard/Mouse:** Driverless control via CH9329 serial adapter.
+* **Virtual Media:** Boot ISOs over the network with integrated Netboot.xyz.
+* **Remote Access:** Built-in Tailscale support to bypass firewalls.
+* **Hardware Recycling:** Optimized for legacy dual-core systems like the Dell D520.
 ❓ Frequently Asked Questions (FAQ)
 
 Q: Does the target PC need special drivers?
@@ -65,9 +59,7 @@ Since this project is designed for a wide range of "legacy" x86 hardware (from m
 
     Contributions: Pull Requests are welcome! If you want to add a Dark Mode toggle, a "Virtual Media" mount feature, or support for other HID adapters, feel free to submit a PR.
 
-## 🚀 One-Line Installer
-Run this command on your freshly installed Debian 13.4 machine to set up the entire stack:
-
-```bash
-curl -sSL https://raw.githubusercontent.com/WombatExtreme/diy-kvm/main/install_kvm.sh | bash
+## 🚀 Quick Start
+Run this on a fresh install of **Debian 13 (Trixie)**:
+`curl -sSL https://raw.githubusercontent.com/WombatExtreme/diy-kvm/main/install_kvm.sh | bash`
 
