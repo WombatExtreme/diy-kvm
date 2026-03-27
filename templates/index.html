@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wombat-KVM BETA v1.9</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/static/wombat_logo.png">
+
+    <style>
+        body { background:#0a0a0a; color:#0f0; font-family:monospace; margin:0; text-align:center; overflow-x:hidden; }
+        
+        /* Dashboard Header */
+        #dash { background:#1a1a1a; padding:10px; border-bottom:2px solid #333; display:flex; justify-content:center; gap:20px; font-size:12px; flex-wrap: wrap; }
+        #dash span { color: #fff; font-weight: bold; }
+        #beta-tag { color: #ffcc00; font-weight: bold; width: 100%; margin-bottom: 5px; font-size: 14px; }
+
+        /* Video Stream Container */
+        #stream { max-width:100%; height:auto; border:4px solid #333; margin-top:10px; background:#000; box-shadow: 0 0 20px rgba(0,255,0,0.1); }
+        
+        /* Control Grid */
+        .controls { padding:15px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
+        .btn { background:#222; color:#0f0; border:1px solid #0f0; padding:12px 20px; cursor:pointer; font-weight:bold; text-transform:uppercase; transition: 0.2s; }
+        .btn:hover { background:#0f0; color:#000; }
+        
+        /* Color Variants */
+        .danger { border-color:#ff3333; color:#ff3333; }
+        .danger:hover { background:#ff3333; color:#fff; }
+        .warn { border-color:#ffa500; color:#ffa500; }
+        .warn:hover { background:#ffa500; color:#000; }
+        .info { border-color:#0af; color:#0af; }
+        .info:hover { background:#0af; color:#000; }
+
+        /* Mobile Text Area */
+        #pbox { width:90%; background:#111; color:#0f0; border:1px solid #333; padding:10px; margin: 15px auto; border-radius: 5px; display: block; }
+
+        /* Branded Splash Screen */
+        #splash { position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; animation: fadeOut 1s ease 4s forwards; }
+        #splash img { max-width:70%; max-height: 250px; margin-bottom: 20px; }
+        @keyframes fadeOut { to { opacity:0; visibility:hidden; pointer-events:none; } }
+
+        /* Mobile Responsiveness */
+        @media (max-width:800px) { 
+            .btn { width:95%; padding:18px; font-size:16px; margin-bottom: 5px; } 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="splash">
+        <img src="/static/wombat_logo.png" alt="WombatExtreme">
+        <h1 style="color:#fff; letter-spacing: 3px;">SMART TECH DONE RIGHT</h1>
+        <p style="color:#ffcc00;">[ LOADING BETA v1.9 ]</p>
+    </div>
+
+    <div id="dash">
+        <div id="beta-tag">⚠️ BETA TESTING MODE - VERIFY HARDWARE STATUS ⚠️</div>
+        <div>CPU: <span id="c">--</span></div> 
+        <div>RAM: <span id="r">--</span></div> 
+        <div>PWR: <span id="p">--</span></div>
+        <button class="btn info" style="padding: 5px 10px; font-size: 10px;" onclick="triggerUpdate()">🔄 UPDATE SOURCE</button>
+    </div>

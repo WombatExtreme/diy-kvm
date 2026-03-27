@@ -1,0 +1,63 @@
+🦊 WOMBAT EXTREME TECHNOLOGIES: TECHNICAL DATASHEET
+
+Project Code: WOMBAT-KVM-D520  |  Version: 1.9 (Headless Production)
+Build Date: March 2026         |  Status: Certified Stable
+🖥️ HARDWARE SPECIFICATIONS
+
+    Host Platform: Dell Latitude D520 (Intel Core 2 Duo / 2GB+ RAM)
+
+    Operating System: Debian 13.4 (Trixie) - 64-bit
+
+    Video Capture: USB HDMI UVC (Bus-Powered)
+
+    HID Controller: CH9329 Serial-to-USB (Hardware Emulation)
+
+    Cooling Mod: Internal Fan-Always-On (Lid-Closed Optimized)
+
+🌐 NETWORK & ACCESS
+
+    Primary Web UI: http://[D520-IP]:5000
+
+    Video Engine: uStreamer (Port 8080)
+
+    Remote Access: Tailscale Mesh VPN (Encrypted)
+
+    Netboot Service: netboot.xyz (PXE/TFTP Enabled)
+
+⚙️ SOFTWARE STACK (DOCKERIZED)
+Service	Image	Function
+KVM-API	wombat-kvm-local	HID Input, Telemetry, Reboot, Update
+Streamer	ustreamer-bin	Low-Latency MJPEG @ 720p60
+Netboot	linuxserver/netbootxyz	Network OS Deployment & Recovery
+Watchdog	bash-daemon	60s Health Check & Auto-Restart
+🔑 CRITICAL PORT MAPPINGS
+
+    5000: Main Control Dashboard
+
+    8080: Raw Video Stream (Snapshot API)
+
+    69/UDP: TFTP (Netboot)
+
+    80/443: Web Installer (Netboot UI)
+
+🛠️ EMERGENCY COMMANDS (SSH)
+
+    Emergency Restart: sudo docker compose restart kvm
+
+    Check Hardware Health: ls /dev/video* && ls /dev/ttyUSB*
+
+    View Watchdog Logs: tail -f ~/kvm_watchdog.log
+
+    "Smart Tech Done Right."
+    Wombat Extreme Technologies - 30 Years of PC Excellence.
+
+
+🏁 Final Production Checklist
+
+    Hardware: HDMI cable is secure, Serial-to-USB is in the correct port.
+
+    Software: deploy_kvm.sh has been executed.
+
+    Lid: Closed and D520 is stowed in the rack.
+
+    UI: Splash screen shows the logo, and the "Update" button is responsive.

@@ -5,18 +5,9 @@ services:
     privileged: true
     network_mode: host
     devices:
-      - "/dev/video0:/dev/video0"
+      - "/dev/input:/dev/input"
       - "/dev/ttyUSB0:/dev/ttyUSB0"
-    restart: always
-    
-    netboot:
-    image: linuxserver/netbootxyz
-    container_name: netbootxyz
-    network_mode: host
-    environment:
-      - PUID=1000
-      - PGID=1000
     volumes:
-      - ./netboot/config:/config
-      - ./netboot/assets:/assets
-    restart: unless-stopped
+      - ".:/app"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    restart: always
