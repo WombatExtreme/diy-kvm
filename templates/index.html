@@ -65,3 +65,30 @@
         <div>PWR: <span id="p">--</span></div>
         <button class="btn info" style="padding: 5px 10px; font-size: 10px;" onclick="triggerUpdate()">🔄 UPDATE SOURCE</button>
     </div>
+	
+	<div id="hw-indicator" style="display: flex; align-items: center; gap: 10px;">
+    <span id="status-led" style="height: 12px; width: 12px; background-color: gray; border-radius: 50%; display: inline-block;"></span>
+    <span id="status-text" style="font-family: monospace; color: #fff;">CHECKING HW...</span>
+</div>
+
+<script>
+function updateStatus() {
+    fetch('/api/hw_status')
+        .then(response => response.json())
+        .then(data => {
+            const led = document.getElementById('status-led');
+            const text = document.getElementById('status-text');
+            if (data.status === 'online') {
+                led.style.backgroundColor = '#2ecc71'; // Wombat Green
+                text.innerText = 'CH340 CONNECTED';
+            } else {
+                led.style.backgroundColor = '#e74c3c'; // Error Red
+                text.innerText = 'HARDWARE DISCONNECTED';
+            }
+        });
+}
+
+// Check every 5 seconds
+setInterval(updateStatus, 5000);
+updateStatus(); 
+</script>

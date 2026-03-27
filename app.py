@@ -79,3 +79,35 @@ if __name__ == '__main__':
     os.makedirs('docs', exist_ok=True)
     play_beep("startup") # Chirp on service start
     app.run(host='0.0.0.0', port=5000)
+    
+    import threading
+import time
+import serial
+
+# Configure your Serial Port
+SERIAL_PORT = '/dev/ttyUSB0'
+BAUD_RATE = 9600
+
+def serial_heartbeat():
+    while True:
+        try:
+            with serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1) as ser:
+                # Sending a null byte or a custom string to keep the line "warm"
+                ser.write(b'\x00') 
+                print(f"[HEARTBEAT] Signal sent to CH340 at {time.ctime()}")
+        except Exception as e:
+            print(f"[ERROR] Serial Heartbeat Failed: {e}")
+        
+        time.sleep(10) # 10-second pulse
+
+# Start the heartbeat in a background thread so it doesn't block Flask
+heartbeat_thread = threading.Thread(target=serial_heartbeat, daemon=True)
+heartbeat_thread.start()
+
+import os
+
+@app.route('/api/hw_status')
+def hw_status():
+    # Check if the device node exists and is readable
+    exists = os.path.exists('/dev/ttyUSB0')
+    return {"status": "online" if exists else "offline"}
