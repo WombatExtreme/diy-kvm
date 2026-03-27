@@ -1,4 +1,5 @@
 # 🦊 WOMBAT-KVM v1.9 [BETA]
+
 ### "Smart Tech Done Right"
 Developed by **Wombat Extreme Technologies**
 
@@ -7,10 +8,12 @@ A professional-grade, self-healing KVM-over-IP appliance repurposed from legacy 
 ---
 
 ## 🚀 QUICK INSTALL (ONE-LINER)
-To deploy the **Wombat-KVM** on a fresh Debian 13 host, copy and paste this command:
+
+To deploy the **Wombat-KVM** on a fresh Debian 13 host, copy and paste this command into your terminal:
 
 ```bash
 curl -sSL [https://raw.githubusercontent.com/WombatExtreme/diy-kvm/main/deploy_kvm.sh](https://raw.githubusercontent.com/WombatExtreme/diy-kvm/main/deploy_kvm.sh) | bash
+
 
 🛠️ PROJECT ARCHITECTURE
 
@@ -40,7 +43,7 @@ This project transforms a 20-year-old laptop into a modern remote management too
 Script	Command	Function
 Deployer	./deploy_kvm.sh	Sets permissions, crontabs, and initial build.
 Watchdog	./watchdog.sh	Checks stream health; auto-restarts on failure.
-Maintenance	./maintenance.sh	Deletes logs/screenshots > 7 days old; prunes Docker.
+Maintenance	./maintenance.sh	Deletes logs/screenshots > 7 days old.
 Rebuilder	./build_wombat.sh	Forces a clean wipe and fresh container build.
 🔬 FINAL BETA CHECKLIST (3-DAY BURN-IN)
 
@@ -58,18 +61,16 @@ Execute these tests to verify "Wombat Extreme" stability.
 
 🛠️ TROUBLESHOOTING
 
-If the KVM is unresponsive, run:
+If the KVM is unresponsive, use the Debug Log button in the Web UI or run:
 Bash
 
 tail -f ~/diy-kvm/docs/watchdog_events.txt
 
 📊 DIAGNOSTIC MONITORING
 
-To watch your thermals in real-time, run:
+To watch your thermals and watchdog status in real-time during your test, run:
 Bash
 
 watch -n 5 "echo '--- THERMALS ---'; cat /sys/class/thermal/thermal_zone0/temp; echo '--- WATCHDOG ---'; tail -n 5 ~/diy-kvm/docs/watchdog_events.txt"
 
 Wombat Extreme Technologies 30 Years of PC Excellence.
-
-
