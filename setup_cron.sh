@@ -28,3 +28,6 @@ echo "✅ SUCCESS! Automation is now live."
 echo "   - Heartbeat: Running every 1 minute"
 echo "   - Watchdog:  Running every 5 minutes"
 echo "   - Cleanup:   Running every Sunday at 3 AM"
+# Update the login banner (MOTD)
+echo "Setting up Wombat Extreme branding..."
+sudo ln -sf $SCRIPT_DIR/welcome.sh /etc/profile.d/wombat_welcome.sh

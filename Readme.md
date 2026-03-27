@@ -65,7 +65,35 @@ To watch thermals and watchdog status in real-time, run:
 > watch -n 5 "echo '--- THERMALS ---'; cat /sys/class/thermal/thermal_zone0/temp; echo '--- WATCHDOG ---'; tail -n 5 ~/diy-kvm/docs/watchdog_events.txt"
 
 </pre>
+🛠️ Hardware Connectivity: The CH9329 <-> CH340 Bridge
 
+This project uses a dual-chip serial bridge to translate HID (Keyboard/Mouse) commands from the Client PC to the KVM Server (D520).
+
+Wiring Diagram (TTL Level):
+
+    CH9329 TX -->  CH340 RX
+
+    CH9329 RX <--  CH340 TX
+
+    GND <--> GND (CRITICAL: Floating grounds cause erratic typing!)
+
+Serial Specifications:
+
+    Baud Rate: 9600
+
+    Data Bits: 8
+
+    Parity: None
+
+    Stop Bits: 1
+
+Troubleshooting the Link:
+
+    Device Not Found: Ensure the CH340 is visible on the D520 by running ls /dev/ttyUSB*. If it doesn't appear, check your USB header connections.
+
+    Permission Denied: The wombat user must be in the dialout group to access the serial port. Our setup_cron.sh handles this automatically.
+
+    Phantom Keystrokes: Usually caused by EMI or a missing common ground between the two USB modules. Ensure the GND pins are jumped together.
 ---
 
 ## ☕ SUPPORT THE PROJECT
