@@ -62,7 +62,13 @@ Wombat Extreme Technologies
 
 ---
 
+### 📊 The "One-Tap" Diagnostic Command
+To check your logs, CPU temps, and Watchdog status all at once while you are testing, run this in your D520 terminal:
 
+```bash
+watch -n 5 "echo '--- THERMALS ---'; cat /sys/class/thermal/thermal_zone0/temp; echo '--- WATCHDOG ---'; tail -n 5 ~/diy-kvm/docs/watchdog_events.txt"
+
+This will refresh every 5 seconds so you can watch the D520 "breath" during the test.
 ---
 
 ## 🚀 QUICK INSTALL (ONE-LINER)
