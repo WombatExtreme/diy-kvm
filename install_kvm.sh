@@ -1,84 +1,57 @@
 #!/bin/bash
 # =================================================================
-# DIY KVM INSTALLER v1.2 - The "Bulletproof" Edition
+# DIY KVM INSTALLER v1.6 - The "Auto-Update" Edition
 # Optimized for: Debian 13.4 (Trixie) / Dell Latitude D520
-# Fixes: Docker/Tailscale Repo issues & non-free-software typos
+# Features: One-Click Git Update, Adaptive UI, Telemetry, Screenshots
 # =================================================================
 
 set -e
 
-echo "--- 🛠 Starting Universal DIY KVM Installation ---"
+echo "--- 🛠 Starting Universal DIY KVM Installation v1.6 ---"
 
-# 1. Self-Repair: Fix 'non-free-software' typo in Debian sources
-echo "--- 🩹 Repairing System Sources List ---"
+# 1. System Repair & Lid Management
+echo "--- 🩹 Disabling Lid Sleep & Repairing Sources ---"
 sudo sed -i 's/non-free-software/non-free/g' /etc/apt/sources.list || true
-sudo apt-get update
+sudo mkdir -p /etc/systemd/logind.conf.d/
+echo -e "[Login]\nHandleLidSwitch=ignore\nHandleLidSwitchExternalPower=ignore" | sudo tee /etc/systemd/logind.conf.d/kvm.conf
+sudo systemctl restart systemd-logind
 
-# 2. Identify User Context
-CURRENT_USER=$USER
-USER_HOME=$HOME
-PROJECT_DIR="$USER_HOME/diy-kvm"
-
-# 3. Hardware Validation
-echo "--- 🔍 Scanning for Hardware ---"
+# 2. Hardware Scan
 VIDEO_DEV=$(ls /dev/video* 2>/dev/null | head -n 1 || true)
 SERIAL_DEV=$(ls /dev/ttyUSB* 2>/dev/null | head -n 1 || true)
+PROJECT_DIR="$HOME/diy-kvm"
 
 if [ -z "$VIDEO_DEV" ] || [ -z "$SERIAL_DEV" ]; then
-    echo "❌ ERROR: Hardware missing! Plug in HDMI Capture and CH340 adapter."
+    echo "❌ ERROR: Hardware missing! Check USB connections."
     exit 1
 fi
-echo "✅ Found Video: $VIDEO_DEV | Serial: $SERIAL_DEV"
 
-# 4. Inject Official Repositories (Docker & Tailscale)
-echo "--- 📦 Adding External Repositories ---"
-sudo apt-get install -y ca-certificates curl gnupg lsb-release
-
-# Add Docker GPG & Repo
+# 3. Inject Repositories (Docker & Tailscale)
+sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg lsb-release
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# Add Tailscale GPG & Repo
-sudo mkdir -p /usr/share/keyrings
 curl -fsSL https://pkgs.tailscale.com/stable/debian/$(lsb_release -cs).noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg > /dev/null
 curl -fsSL https://pkgs.tailscale.com/stable/debian/$(lsb_release -cs).tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
 
-# 5. Final Dependency Install
-echo "--- 📥 Installing Docker, Tailscale, and Tools ---"
+# 4. Install Dependencies
 sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin tailscale aria2 build-essential python3-flask python3-serial
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin tailscale aria2 build-essential python3-flask python3-serial python3-psutil python3-requests git
 
-# 6. Create Project Structure
-mkdir -p "$PROJECT_DIR/templates"
-mkdir -p "$PROJECT_DIR/netboot/assets"
-mkdir -p "$PROJECT_DIR/netboot/config"
+# 5. Project Folders
+mkdir -p "$PROJECT_DIR/templates" "$PROJECT_DIR/screenshots" "$PROJECT_DIR/netboot/assets"
 cd "$PROJECT_DIR"
 
-# 7. Generate mappings.py
+# 6. Generate mappings.py
 cat <<EOF > mappings.py
-HID_MAP = {
-    'a': 0x04, 'b': 0x05, 'c': 0x06, 'd': 0x07, 'e': 0x08, 'f': 0x09, 'g': 0x0a,
-    'h': 0x0b, 'i': 0x0c, 'j': 0x0d, 'k': 0x0e, 'l': 0x0f, 'm': 0x10, 'n': 0x11,
-    'o': 0x12, 'p': 0x13, 'q': 0x14, 'r': 0x15, 's': 0x16, 't': 0x17, 'u': 0x18,
-    'v': 0x19, 'w': 0x1a, 'x': 0x1b, 'y': 0x1c, 'z': 0x1d, '1': 0x1e, '2': 0x1f, 
-    '3': 0x20, '4': 0x21, '5': 0x22, '6': 0x23, '7': 0x24, '8': 0x25, '9': 0x26, 
-    '0': 0x27, 'Enter': 0x28, 'Escape': 0x29, 'Backspace': 0x2a, 'Tab': 0x2b, 
-    'Space': 0x2c, '-': 0x2d, '=': 0x2e, '[': 0x2f, ']': 0x30, '\\\\': 0x31, 
-    ';': 0x33, "'": 0x34, '\`': 0x35, ',': 0x36, '.': 0x37, '/': 0x38, 
-    'CapsLock': 0x39, 'F1': 0x3a, 'F2': 0x3b, 'F3': 0x3c, 'F4': 0x3d, 'F5': 0x3e, 
-    'F6': 0x3f, 'F7': 0x40, 'F8': 0x41, 'F9': 0x42, 'F10': 0x43, 'F11': 0x44, 
-    'F12': 0x45, 'PrintScreen': 0x46, 'Delete': 0x4c, 'ArrowRight': 0x4f, 
-    'ArrowLeft': 0x50, 'ArrowDown': 0x51, 'ArrowUp': 0x52
-}
-MOD_MAP = {'Control': 0x01, 'Shift': 0x02, 'Alt': 0x04, 'Meta': 0x08}
+HID_MAP = {'a':0x04,'b':0x05,'c':0x06,'d':0x07,'e':0x08,'f':0x09,'g':0x0a,'h':0x0b,'i':0x0c,'j':0x0d,'k':0x0e,'l':0x0f,'m':0x10,'n':0x11,'o':0x12,'p':0x13,'q':0x14,'r':0x15,'s':0x16,'t':0x17,'u':0x18,'v':0x19,'w':0x1a,'x':0x1b,'y':0x1c,'z':0x1d,'1':0x1e,'2':0x1f,'3':0x20,'4':0x21,'5':0x22,'6':0x23,'7':0x24,'8':0x25,'9':0x26,'0':0x27,'Enter':0x28,'Escape':0x29,'Backspace':0x2a,'Tab':0x2b,'Space':0x2c,'-':0x2d,'=':0x2e,'[':0x2f,']':0x30,'\\\\':0x31,';':0x33,"'":0x34,'\`':0x35,',':0x36,'.':0x37,'/':0x38,'CapsLock':0x39,'F1':0x3a,'F2':0x3b,'F3':0x3c,'F4':0x3d,'F5':0x3e,'F6':0x3f,'F7':0x40,'F8':0x41,'F9':0x42,'F10':0x43,'F11':0x44,'F12':0x45,'PrintScreen':0x46,'Delete':0x4c,'ArrowRight':0x4f,'ArrowLeft':0x50,'ArrowDown':0x51,'ArrowUp':0x52}
+MOD_MAP = {'Control':0x01,'Shift':0x02,'Alt':0x04,'Meta':0x08}
 EOF
 
-# 8. Generate app.py
+# 7. Generate app.py (With Update Logic)
 cat <<EOF > app.py
-from flask import Flask, render_template, request, jsonify
-import serial, time, os
-from mappings import HID_MAP, MOD_MAP
+from flask import Flask, render_template, request, jsonify, send_file
+import serial, time, os, psutil, requests, subprocess
 
 app = Flask(__name__)
 SER_PORT = os.getenv('SERIAL_PORT', '$SERIAL_DEV')
@@ -89,9 +62,32 @@ def send_packet(packet):
             packet.append(sum(packet) % 256)
             ser.write(bytearray(packet))
             time.sleep(0.01)
-            release = [0x57, 0xAB, 0x00, 0x02, 0x08] + [0]*8 + [0xED]
-            ser.write(bytearray(release))
-    except Exception as e: print(f"Serial Error: {e}")
+            ser.write(bytearray([0x57, 0xAB, 0x00, 0x02, 0x08, 0,0,0,0,0,0,0,0, 0xED]))
+    except: pass
+
+@app.route('/stats')
+def get_stats():
+    cpu = psutil.cpu_percent()
+    ram = psutil.virtual_memory().percent
+    bat = psutil.sensors_battery()
+    pwr = f"{bat.percent}%" if bat else "AC"
+    return jsonify(cpu=f"{cpu}%", ram=f"{ram}%", pwr=pwr)
+
+@app.route('/update', methods=['POST'])
+def update_self():
+    # Trigger a background update script so we don't kill the flask thread mid-run
+    subprocess.Popen(["/bin/bash", "-c", "sleep 2 && cd /app && git pull && docker compose up -d --build"])
+    return jsonify(status="Update triggered! Interface will reboot in 10s.")
+
+@app.route('/screenshot')
+def take_ss():
+    ts = int(time.time())
+    path = f"screenshots/ss_{ts}.jpg"
+    try:
+        r = requests.get("http://localhost:8080/snapshot", timeout=2)
+        with open(path, 'wb') as f: f.write(r.content)
+        return send_file(path, as_attachment=True)
+    except: return "Capture Failed", 500
 
 @app.route('/')
 def index(): return render_template('index.html')
@@ -107,130 +103,45 @@ def handle_key():
     if hid: send_packet([0x57, 0xAB, 0x00, 0x02, 0x08, mod, 0x00, hid, 0,0,0,0,0])
     return jsonify(status="ok")
 
-@app.route('/send_mouse', methods=['POST'])
-def handle_mouse():
-    data = request.json
-    packet = [0x57, 0xAB, 0x00, 0x05, 0x05, 0x01, data.get('btn', 0), data.get('x',0) & 0xFF, data.get('y',0) & 0xFF, 0]
-    send_packet(packet)
-    return jsonify(status="ok")
-
-@app.route('/paste', methods=['POST'])
-def handle_paste():
-    for char in request.json.get('text', ''):
-        mod = 0x02 if char.isupper() or char in '!@#$%^&*()_+' else 0x00
-        hid = HID_MAP.get(char.lower(), 0x00)
-        if hid: 
-            send_packet([0x57, 0xAB, 0x00, 0x02, 0x08, mod, 0x00, hid, 0,0,0,0,0])
-            time.sleep(0.05)
-    return jsonify(status="ok")
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 EOF
 
-# 9. Generate templates/index.html
+# 8. Generate Adaptive templates/index.html (With Update Button)
 cat <<EOF > templates/index.html
 <!DOCTYPE html>
 <html>
 <head>
-    <title>DIY KVM Console</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wombat DIY-KVM Master v1.6</title>
     <style>
-        body { background: #1a1a1a; color: #0f0; font-family: monospace; text-align: center; margin: 0; padding: 20px; }
-        #container { position: relative; display: inline-block; border: 5px solid #333; cursor: crosshair; }
-        #stream { max-width: 100%; display: block; border: 1px solid #444; }
-        #mousepad { position: absolute; top:0; left:0; width:100%; height:100%; }
-        .controls { margin-top: 20px; }
-        textarea { background: #000; color: #0f0; width: 400px; height: 60px; border: 1px solid #0f0; padding: 10px; }
-        button { background: #333; color: #0f0; border: 1px solid #0f0; padding: 10px 20px; cursor: pointer; font-family: monospace; }
-        button:hover { background: #0f0; color: #000; }
-        .danger { background: #600; color: #fff; border-color: red; }
+        body { background:#111; color:#0f0; font-family:monospace; margin:0; text-align:center; }
+        #dash { background:#222; padding:10px; border-bottom:1px solid #444; font-size:12px; display:flex; justify-content:center; gap:15px; }
+        #dash span { color:#fff; }
+        #stream { display:block; max-width:100%; height:auto; border:2px solid #333; margin: 10px auto; }
+        .controls { margin-top:15px; display:flex; justify-content:center; gap:10px; padding:10px; flex-wrap: wrap; }
+        .btn { background:#333; color:#0f0; border:1px solid #0f0; padding:10px 15px; cursor:pointer; font-weight:bold; }
+        .btn:hover { background:#0f0; color:#000; }
+        .danger { border-color:red; color:red; }
+        .update-btn { border-color: #0af; color: #0af; font-size: 10px; }
+        @media (max-width: 800px) {
+            .btn { width: 90%; padding: 15px; font-size: 16px; }
+            #pbox { width: 90%; background: #000; color: #0f0; border: 1px solid #0f0; padding: 10px; margin-top: 10px; }
+        }
     </style>
 </head>
 <body>
-    <h2>REMOTE CONSOLE ACCESS</h2>
-    <div id="container">
-        <img id="stream" src="http://{{ request.host.split(':')[0] }}:8080/stream">
-        <div id="mousepad"></div>
+    <div id="dash">
+        <div>CPU: <span id="c">-</span></div> <div>RAM: <span id="r">-</span></div> <div>PWR: <span id="p">-</span></div>
+        <button class="btn update-btn" onclick="if(confirm('Pull latest from GitHub?')) fetch('/update',{method:'POST'})">🔄 UPDATE APP</button>
     </div>
+    <img id="stream" src="http://{{ request.host.split(':')[0] }}:8080/stream">
     <div class="controls">
-        <button class="danger" onclick="fetch('/send_key', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:'Delete', ctrl:true, alt:true})})">SEND CTRL+ALT+DEL</button>
-        <br><br>
-        <textarea id="pbox" placeholder="Paste text here to type into target PC..."></textarea><br>
-        <button onclick="fetch('/paste', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:document.getElementById('pbox').value})})">TYPE CLIPBOARD</button>
+        <button class="btn" onclick="window.location='/screenshot'">📸 SCREENSHOT</button>
+        <button class="btn danger" onclick="fetch('/send_key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'Delete',ctrl:true,alt:true})})">CTRL+ALT+DEL</button>
     </div>
+    <textarea id="pbox" rows="2" placeholder="Mobile Input..."></textarea>
     <script>
-        const pad = document.getElementById('mousepad');
-        window.addEventListener('keydown', (e) => {
-            if (document.activeElement.id === 'pbox') return;
-            e.preventDefault();
-            fetch('/send_key', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:e.key, shift:e.shiftKey, ctrl:e.ctrlKey, alt:e.altKey})});
-        });
-        pad.addEventListener('mousemove', (e) => {
-            fetch('/send_mouse', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({x:e.movementX, y:e.movementY})});
-        });
-        pad.addEventListener('mousedown', (e) => {
-            let btn = (e.button === 0) ? 0x01 : (e.button === 2 ? 0x02 : 0);
-            fetch('/send_mouse', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({btn:btn, x:0, y:0})});
-        });
-        document.addEventListener('contextmenu', event => event.preventDefault());
-    </script>
-</body>
-</html>
-EOF
-
-# 10. Generate Dockerfile
-cat <<EOF > Dockerfile
-FROM debian:13-slim
-RUN apt-get update && apt-get install -y build-essential libevent-dev libjpeg-dev libbsd-dev python3 python3-pip python3-serial git python3-flask
-RUN git clone --depth=1 https://github.com/pikvm/ustreamer /tmp/ustreamer && cd /tmp/ustreamer && make && cp ustreamer /usr/local/bin/
-WORKDIR /app
-COPY . .
-EXPOSE 8080 5000
-CMD ustreamer --device=$VIDEO_DEV --host=0.0.0.0 --port=8080 --format=mjpeg --resolution=1280x720 --desired-fps=30 & python3 app.py
-EOF
-
-# 11. Generate docker-compose.yml
-cat <<EOF > docker-compose.yml
-version: '3.8'
-services:
-  kvm:
-    build: .
-    privileged: true
-    network_mode: host
-    environment:
-      - SERIAL_PORT=$SERIAL_DEV
-    devices:
-      - "$VIDEO_DEV:$VIDEO_DEV"
-      - "$SERIAL_DEV:$SERIAL_DEV"
-    restart: always
-
-  netboot:
-    image: linuxserver/netbootxyz
-    container_name: netbootxyz
-    network_mode: host
-    environment:
-      - PUID=1000
-      - PGID=1000
-    volumes:
-      - ./netboot/config:/config
-      - ./netboot/assets:/assets
-    restart: unless-stopped
-EOF
-
-# 12. Build and Start
-echo "--- 🚀 Starting DIY-KVM Services ---"
-sudo docker compose up -d --build
-
-# 13. Help Info
-IP_ADDR=$(hostname -I | awk '{print $1}')
-cat <<EOF > HELP.txt
-DIY KVM QUICK START GUIDE
-==================================================
-1. LOCAL ACCESS:  http://$IP_ADDR:5000
-2. TAILSCALE:     Run 'sudo tailscale up'
-3. LOGS:          cd $PROJECT_DIR && sudo docker compose logs -f
-==================================================
-EOF
-
-echo "--- ✅ SUCCESS! INSTALLATION COMPLETE ---"
-echo "Web UI: http://$IP_ADDR:5000"
+        setInterval(() => {
+            fetch('/stats').then(r=>r.json()).then(d=>{
+                document.getElementById('c').innerText=d.cpu; document.getElementById('r').innerText=d.ram;
