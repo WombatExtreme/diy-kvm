@@ -1,0 +1,29 @@
+🖥 Features
+
+    Low Latency Video: Powered by ustreamer for MJPEG streaming.
+
+    Full HID Control: Real-time US English keyboard mapping via CH9329.
+
+    Virtual Trackpad: Move the target mouse by moving your cursor over the video feed.
+
+    Admin Macros: Dedicated button for Ctrl+Alt+Del.
+
+    Typewriter Paste: Paste long passwords or commands from your local clipboard and "type" them into the target.
+
+📦 Architecture
+
+The system runs in a privileged Docker container to allow direct access to:
+
+    /dev/video0 (Video Capture)
+
+    /dev/ttyUSB0 (HID Control via Serial)
+
+🔧 Post-Installation
+
+    Access the web interface at http://[DEVICE_IP]:5000.
+
+    For remote access outside your network, install Tailscale on the host.
+
+    If the mouse feels inverted or laggy, ensure the browser zoom is set to 100%.
+
+Built for sysadmins, by sysadmins. Recycled hardware is the best hardware.

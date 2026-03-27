@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  kvm:
+    build: .
+    privileged: true
+    network_mode: host
+    devices:
+      - "/dev/video0:/dev/video0"
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+    restart: always

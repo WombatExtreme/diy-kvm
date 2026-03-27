@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>D520 DIY KVM</title>
+    <style>
+        body { background: #1a1a1a; color: #0f0; font-family: monospace; text-align: center; }
+        #container { position: relative; display: inline-block; border: 5px solid #333; }
+        #stream { max-width: 100%; display: block; }
+        #mousepad { position: absolute; top:0; left:0; width:100%; height:100%; cursor: none; }
+        .controls { margin-top: 20px; }
+        textarea { background: #000; color: #0f0; width: 300px; }
+    </style>
+</head>
+<body>
+    <h2>DELL D520 REMOTE CONSOLE</h2>
+    <div id="container">
+        <img id="stream" src="http://{{ request.host.split(':')[0] }}:8080/stream">
+        <div id="mousepad"></div>
+    </div>
+    <div class="controls">
+        <button onclick="fetch('/send_key', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:'Delete', ctrl:true, alt:true})})" style="background:red; color:white;">CTRL+ALT+DEL</button>
+        <br><br>
+        <textarea id="pbox" placeholder="Paste here..."></textarea><br>
+        <button onclick="fetch('/paste', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:document.getElementById('pbox').value})})">TYPE TEXT</button>
+    </div>
+    <script>
+        const pad = document.getElementById('mousepad');
+        window.addEventListener('keydown', (e) => {
+            e.preventDefault();
+            fetch('/send_key', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:e.key, shift:e.shiftKey, ctrl:e.ctrlKey, alt:e.altKey})});
+        });
+        pad.addEventListener('mousemove', (e) => {
+            fetch('/send_mouse', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({x:e.movementX, y:e.movementY})});
+        });
+    </script>
+</body>
+</html>
