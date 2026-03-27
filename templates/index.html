@@ -3,67 +3,56 @@
 <head>
     <title>Wombat Extreme KVM</title>
     <style>
-        body { background: #1a1a1a; color: white; font-family: 'Courier New', Courier, monospace; text-align: center; padding: 20px; }
-        #kvm-container { margin: 20px auto; width: 90%; max-width: 1280px; border: 5px solid #333; position: relative; background: #000; }
-        #video-feed { width: 100%; display: block; }
-        
-        .controls { margin-top: 20px; padding: 15px; background: #222; border-radius: 8px; display: inline-block; }
-        
-        .btn-update { 
-            background-color: #f39c12; color: black; border: none; padding: 10px 20px; 
-            font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase;
+        body { background: #1a1a1a; color: white; font-family: 'Courier New', monospace; text-align: center; padding: 20px; }
+        #kvm-container { 
+            margin: 20px auto; width: 90%; max-width: 1280px; 
+            border: 5px solid #333; background: #000; cursor: crosshair;
         }
-        .btn-update:hover { background-color: #e67e22; }
-        
-        .status-bar { margin-bottom: 10px; font-size: 14px; }
-        .led { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .led-green { background-color: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+        #video-feed { width: 100%; display: block; }
+        .controls { margin-top: 20px; padding: 20px; background: #222; border-radius: 10px; display: inline-block; }
+        .btn-update { 
+            background: #f39c12; color: #000; border: none; padding: 12px 24px; 
+            font-weight: bold; cursor: pointer; border-radius: 5px; text-transform: uppercase;
+        }
+        .btn-update:hover { background: #e67e22; }
+        .info { color: #777; font-size: 12px; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <h2>WOMBAT EXTREME KVM <small style="color: #666;">v1.0-BURNIN</small></h2>
-    
-    <div class="status-bar">
-        <span class="led led-green"></span> SYSTEM: <span id="ip-display">DETECTING...</span>
-    </div>
-    
+    <h2>WOMBAT EXTREME KVM <span style="color: #2ecc71;">[LIVE]</span></h2>
+    <p>Connected to: <span id="current-ip" style="color: #f39c12;">detecting...</span></p>
+
     <div id="kvm-container">
-        <img id="video-feed" src="" alt="Connecting to uStreamer...">
+        <img id="video-feed" src="" alt="Waiting for Hardware (Check Port 8000)...">
     </div>
 
     <div class="controls">
-        <button class="btn-update" onclick="forceUpdate()">Refresh Hardware Feed</button>
-        <p style="font-size: 10px; color: #777; margin-top: 10px;">72-HOUR TEST IN PROGRESS</p>
+        <button class="btn-update" onclick="location.reload()">REFRESH HARDWARE LINK</button>
+        <div class="info">72-HOUR BURN-IN: DHCP ADAPTIVE MODE</div>
     </div>
 
     <script>
-        // Automatically find the D520's IP
+        // Get current IP/Hostname (will be 192.168.3.113)
         const host = window.location.hostname;
-        const port = window.location.port || '5000';
+        const flaskPort = window.location.port || '5000';
         
-        document.getElementById('ip-display').innerText = `${host}:${port}`;
-        
-        // Point the video to the uStreamer engine (Port 8000)
-        const videoElement = document.getElementById('video-feed');
-        videoElement.src = `http://${host}:8000/stream`;
+        document.getElementById('current-ip').innerText = host;
 
-        function forceUpdate() {
-            console.log("Forcing hardware refresh...");
-            videoElement.src = `http://${host}:8000/stream?t=${new Date().getTime()}`;
-        }
+        // Point video to uStreamer on Port 8000
+        const video = document.getElementById('video-feed');
+        video.src = `http://${host}:8000/stream`;
 
-        // Mouse Tracking Logic
+        // Mouse Tracker
         document.getElementById('kvm-container').addEventListener('mousemove', function(e) {
-            const rect = e.target.getBoundingClientRect();
+            const rect = this.getBoundingClientRect();
             const x = Math.round(e.clientX - rect.left);
             const y = Math.round(e.clientY - rect.top);
             
-            // Sending to Flask on Port 5000
-            fetch(`http://${host}:${port}/send_mouse`, {
+            fetch(`http://${host}:${flaskPort}/send_mouse`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ x: x, y: y })
-            }).catch(err => console.error("Serial Link Down:", err));
+            }).catch(() => {}); // Silent fail to keep UI smooth
         });
     </script>
 </body>
