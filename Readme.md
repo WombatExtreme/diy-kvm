@@ -1,3 +1,9 @@
+## ⚡ QUICK INSTALL (ONE-LINER)
+If you are on a fresh Debian 13 "Trixie" install on a D520, run this command to pull the repository and launch the **Wombat-KVM** environment:
+
+```bash
+curl -sSL [https://raw.githubusercontent.com/](https://raw.githubusercontent.com/)WombatExtreme/diy-kvm/main/deploy_kvm.sh | bash
+
 # 🦊 WOMBAT-KVM v1.9 [BETA]
 ### "Smart Tech Done Right"
 Developed by **Wombat Extreme Technologies**
