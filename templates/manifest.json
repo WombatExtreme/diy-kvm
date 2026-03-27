@@ -1,0 +1,16 @@
+{
+  "short_name": "WombatKVM",
+  "name": "Wombat Extreme KVM Dashboard",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#000000",
+  "display": "standalone",
+  "theme_color": "#ff6600"
+}
+}

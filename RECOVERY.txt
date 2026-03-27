@@ -1,0 +1,22 @@
+===============================================================
+ 🦊 WOMBAT-KVM RECOVERY CHEAT SHEET (v1.9)
+===============================================================
+
+1. NETWORK HANG? (Restarts the D520's Wi-Fi/Ethernet)
+   sudo systemctl restart networking
+
+2. KVM WEB UI DOWN? (Restarts the Docker containers)
+   cd ~/diy-kvm && docker-compose restart
+
+3. CHECK TEMPERATURES? (Real-time view)
+   watch -n 1 "cat /sys/class/thermal/thermal_zone0/temp"
+
+4. VIEW ERROR LOGS? (The last 50 lines of drama)
+   tail -n 50 ~/diy-kvm/docs/watchdog_events.txt
+
+5. USB DEVICE NOT FOUND? (Lists all connected USB/Serial gear)
+   lsusb && ls /dev/ttyUSB*
+
+===============================================================
+ Wombat Extreme Technologies - 30 Years of PC Excellence.
+===============================================================
