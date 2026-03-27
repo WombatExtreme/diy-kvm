@@ -62,7 +62,7 @@ Wombat Extreme Technologies
 
 ---
 
-### 📊 The "One-Tap" Diagnostic Command
+# 📊 The "One-Tap" Diagnostic Command
 To check your logs, CPU temps, and Watchdog status all at once while you are testing, run this in your D520 terminal:
 
 ```bash
