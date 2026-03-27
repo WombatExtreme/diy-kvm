@@ -2,12 +2,12 @@
 ### "Smart Tech Done Right"
 Developed by **Wombat Extreme Technologies**
 
-A professional-grade, self-healing KVM-over-IP appliance repurposed from legacy Dell Latitude D520 hardware. Optimized for headless rack operation, remote BIOS management, and mobile accessibility.
+A professional-grade, self-healing KVM-over-IP appliance repurposed from legacy Dell Latitude D520 hardware.
 
 ---
 
 ## 🚀 QUICK INSTALL (ONE-LINER)
-To deploy the **Wombat-KVM** on a fresh Debian 1 host, copy and paste this command into your terminal:
+To deploy the **Wombat-KVM** on a fresh Debian 13 host, copy and paste this command:
 
 ```bash
 curl -sSL [https://raw.githubusercontent.com/WombatExtreme/diy-kvm/main/deploy_kvm.sh](https://raw.githubusercontent.com/WombatExtreme/diy-kvm/main/deploy_kvm.sh) | bash
@@ -58,16 +58,19 @@ Execute these tests to verify "Wombat Extreme" stability.
 
 🛠️ TROUBLESHOOTING
 
-If the KVM is unresponsive, use the Debug Log button in the Web UI or run:
+If the KVM is unresponsive, run:
 Bash
 
 tail -f ~/diy-kvm/docs/watchdog_events.txt
 
 📊 DIAGNOSTIC MONITORING
 
-To watch your thermals and watchdog status in real-time during your test, run:
+To watch your thermals in real-time, run:
 Bash
 
 watch -n 5 "echo '--- THERMALS ---'; cat /sys/class/thermal/thermal_zone0/temp; echo '--- WATCHDOG ---'; tail -n 5 ~/diy-kvm/docs/watchdog_events.txt"
 
 Wombat Extreme Technologies 30 Years of PC Excellence.
+
+
+**Would you like me to generate the actual `deploy_kvm.sh` script** so the curl command in your new README actually has a file to download and run?
