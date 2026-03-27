@@ -1,17 +1,15 @@
 <pre>
-_      __              _           _      _  ____      ____  __ 
- | |    / /___  ____ ___| |__   __ _| |_   | |/ /\ \    / /\ \/ / 
- | | /|/ / __ \/ __ `__ \ '_ \ / _` | __|  | ' /  \ \  / /  \  /  
- | |/ |/ / /_/ / / / / / / /_) | (_| | |_   | . \   \ \/ /   / /   
- |__/|__/\____/_/ /_/ /_/_.__/ \__,_|\__|  |_|\_\   \__/   /_/    
-                                                                  
-                                                                  
-                       _           _   
-                      | |__   ___ | |_ 
-                      | '_ \ / _ \| __|
-                      | |_) | (_) | |_ 
-                      |_.__/ \___/ \__|
-                                       
+__      __  ____  __  __  ____    _  _____ 
+ \ \    / / / __ \ \ \/ / | __ )  / \|_   _|
+  \ \  / / | |  | | \  /  |  _ \ / _ \ | |  
+   \ \/ /  | |__| | /  \  | |_) / ___ \| |  
+    \__/    \____/ /_/\_\ |____/_/   \_\_|  
+                                            
+  _  __ __     __ __  __ 
+ | |/ / \ \   / / |  \/  |
+ | ' /   \ \ / /  | |\/| |
+ | . \    \ V /   | |  | |
+ |_|\_\    \_/    |_|  |_|
 
 ---
 
@@ -41,10 +39,10 @@ Copy and paste this command into your Debian 13 "Trixie" terminal:
 +------------+------------------+--------------------------------------------+
 | Script     | Command          | Function                                   |
 +------------+------------------+--------------------------------------------+
-| Deployer   | deploy_kvm.sh   | Sets permissions, crontabs, & initial build. |
-| Watchdog   | watchdog.sh     | Checks stream health every 60s; auto-restarts. |
-| Rebuilder  | build_wombat.sh | Forces a clean wipe and fresh container build. |
-| Maintain   | maintenance.sh  | Deletes logs/screenshots > 7 days old.     |
+| Deployer   | deploy_kvm.sh    | Sets permissions, crontabs, & initial build. |
+| Watchdog   | watchdog.sh      | Checks stream health every 60s; auto-restarts. |
+| Rebuilder  | build_wombat.sh  | Forces a clean wipe and fresh container build. |
+| Maintain   | maintenance.sh   | Deletes logs/screenshots > 7 days old.     |
 +------------+------------------+--------------------------------------------+
 
 ---
