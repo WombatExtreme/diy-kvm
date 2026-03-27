@@ -65,3 +65,20 @@ To watch thermals and watchdog status in real-time, run:
 > watch -n 5 "echo '--- THERMALS ---'; cat /sys/class/thermal/thermal_zone0/temp; echo '--- WATCHDOG ---'; tail -n 5 ~/diy-kvm/docs/watchdog_events.txt"
 
 </pre>
+
+---
+
+## ☕ SUPPORT THE PROJECT
+
+**Wombat-KVM** is, and always will be, **100% Free and Open Source**. 
+
+If this project saved you from buying a $500 commercial KVM, or if you just want to support 30 years of "Extreme" PC tinkering, feel free to buy the developer a coffee or a spare CMOS battery:
+
+* [ ] **Buy Me A Coffee:** buymeacoffee.com/wombatextreme
+* [ ] **PayPal:** paypal.me/KristopherJenkins
+
+
+*No paywalls. No corporate bloat. Just Smart Tech Done Right.*
+
+---
+**Wombat Extreme Technologies** *Est. 1996 | Dedicated to Repurposing the Past for the Future.*
