@@ -1,45 +1,43 @@
 #!/bin/bash
 # =================================================================
-# WOMBAT EXTREME TECHNOLOGIES - MASTER WATCHDOG & DEPLOYER v1.9
+# WOMBAT-KVM MASTER DEPLOYER v1.9 (BETA)
 # =================================================================
 
-PROJECT_DIR="$HOME/diy-kvm"
-WATCHDOG_SCRIPT="$PROJECT_DIR/watchdog.sh"
+echo "🦊 Starting Wombat-KVM Deployment..."
 
-echo "--- 🛠️ Starting Final Production Deployment ---"
+# 1. Update and Install Dependencies
+sudo apt-get update
+sudo apt-get install -y docker.io docker-compose curl git beep alsa-utils
 
-# 1. Create the Watchdog Script
-cat <<'EOF' > "$WATCHDOG_SCRIPT"
-#!/bin/bash
-# Checks if the KVM stream is alive. If not, restarts Docker.
-while true; do
-    if ! curl -s --head  --request GET http://localhost:8080/stream | grep "200 OK" > /dev/null; then
-        echo "$(date): KVM Stream down! Restarting services..." >> $HOME/kvm_watchdog.log
-        cd $HOME/diy-kvm && sudo docker compose restart kvm
-    fi
-    sleep 60
-done
-EOF
+# 2. Hardware Permissions (Serial & Video)
+# Adds current user to necessary groups for D520 hardware access
+sudo usermod -aG dialout,video,docker $USER
 
-chmod +x "$WATCHDOG_SCRIPT"
+# 3. Enable PC Speaker (Motherboard Beeper)
+# This ensures the 'Startup' and 'Login' beeps actually work.
+sudo modprobe pcspkr
+echo "pcspkr" | sudo tee /etc/modules-load.d/pcspkr.conf
+sudo amixer -c 0 set Beep 100% unmute 2>/dev/null || echo "Check Alsamixer for Beep settings."
 
-# 2. Fix Hardware Permissions (Serial & Video)
-echo "--- 🔒 Setting Hardware Permissions ---"
-sudo usermod -aG dialout $USER
-sudo usermod -aG video $USER
+# 4. Directory Structure
+mkdir -p ~/diy-kvm/docs
+mkdir -p ~/diy-kvm/screenshots
+cd ~/diy-kvm
 
-# 3. Build and Launch the Containers
-echo "--- 🏗️ Building Wombat-KVM Image (v1.9) ---"
-cd "$PROJECT_DIR"
-sudo docker compose up -d --build
+# 5. Set Permissions for Scripts
+chmod +x *.sh
 
-# 4. Set up the Watchdog in Crontab
-echo "--- 🕒 Scheduling Auto-Start & Watchdog ---"
-# Remove old entries to prevent duplicates
+# 6. Initialize Crontab (Watchdog & Maintenance)
+# Deletes existing KVM crons and adds fresh ones
 crontab -l | grep -v "diy-kvm" | crontab -
-# Add new reboot and watchdog entries
-(crontab -l ; echo "@reboot sleep 30 && cd $PROJECT_DIR && sudo docker compose up -d") | crontab -
-(crontab -l ; echo "@reboot sleep 60 && bash $WATCHDOG_SCRIPT") | crontab -
+(crontab -l ; echo "* * * * * /bin/bash $HOME/diy-kvm/watchdog.sh") | crontab -
+(crontab -l ; echo "0 0 * * 0 /bin/bash $HOME/diy-kvm/maintenance.sh") | crontab -
 
-echo "--- ✅ DEPLOYMENT COMPLETE ---"
-echo "Watchdog is active. Logs available at ~/kvm_watchdog.log"
+# 7. Build and Launch
+sudo docker-compose up -d --build
+
+echo "-------------------------------------------------------"
+echo "✅ DEPLOYMENT COMPLETE"
+echo "URL: http://$(hostname -I | awk '{print $1}'):5000"
+echo "-------------------------------------------------------"
+echo "Note: You may need to REBOOT for group permissions to apply."
