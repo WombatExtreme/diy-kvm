@@ -1,9 +1,8 @@
 #!/bin/bash
 # =================================================================
-# DIY KVM INSTALLER v1.0 - The "Trash-to-Treasure" Edition
+# DIY KVM INSTALLER v1.1 - The "Master Edition"
 # Optimized for: Debian 13.4 Stable (Trixie) 
 # Support: Dell Latitude D520 / any x86_64 Linux PC
-# Hardware: CH9329 HID Adapter + HDMI-to-USB Capture Card
 # =================================================================
 
 set -e
@@ -34,10 +33,29 @@ echo "✅ Found Serial: $SERIAL_DEV"
 # 3. System Prep & Dependencies
 echo "--- 📦 Installing System Dependencies ---"
 sudo apt-get update
-sudo apt-get install -y curl git docker.io docker-compose-plugin tailscale || true
 
-# 4. Create Directory Structure
+# Install basics needed to add new repos
+sudo apt-get install -y ca-certificates curl gnupg lsb-release
+
+# --- ADD DOCKER REPO ---
+echo "--- 🐳 Adding Docker Repository ---"
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# --- ADD TAILSCALE REPO ---
+echo "--- 🔗 Adding Tailscale Repository ---"
+curl -fsSL https://pkgs.tailscale.com/stable/debian/$(lsb_release -cs).noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg > /dev/null
+curl -fsSL https://pkgs.tailscale.com/stable/debian/$(lsb_release -cs).tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+
+# Now update and install everything
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin tailscale aria2 build-essential
+
+# 4. Create Project Directory Structure
 mkdir -p "$PROJECT_DIR/templates"
+mkdir -p "$PROJECT_DIR/netboot/assets"
+mkdir -p "$PROJECT_DIR/netboot/config"
 cd "$PROJECT_DIR"
 
 # 5. Generate mappings.py
@@ -167,50 +185,4 @@ EOF
 cat <<EOF > Dockerfile
 FROM debian:13-slim
 RUN apt-get update && apt-get install -y build-essential libevent-dev libjpeg-dev libbsd-dev python3 python3-pip python3-serial git python3-flask
-RUN git clone --depth=1 https://github.com/pikvm/ustreamer /tmp/ustreamer && cd /tmp/ustreamer && make && cp ustreamer /usr/local/bin/
-WORKDIR /app
-COPY . .
-EXPOSE 8080 5000
-CMD ustreamer --device=$VIDEO_DEV --host=0.0.0.0 --port=8080 --format=mjpeg --resolution=1280x720 --desired-fps=30 & python3 app.py
-EOF
-
-# 9. Generate docker-compose.yml
-cat <<EOF > docker-compose.yml
-version: '3.8'
-services:
-  kvm:
-    build: .
-    privileged: true
-    network_mode: host
-    environment:
-      - SERIAL_PORT=$SERIAL_DEV
-    devices:
-      - "$VIDEO_DEV:$VIDEO_DEV"
-      - "$SERIAL_DEV:$SERIAL_DEV"
-    restart: always
-EOF
-
-# 10. Generate HELP.txt
-IP_ADDR=$(hostname -I | awk '{print $1}')
-cat <<EOF > HELP.txt
-DIY KVM QUICK START GUIDE
-==================================================
-1. LOCAL ACCESS:  http://$IP_ADDR:5000
-2. REMOTE ACCESS: Use your Tailscale IP on port 5000.
-3. LOGS:          cd $PROJECT_DIR && sudo docker compose logs -f
-4. RESTART:       cd $PROJECT_DIR && sudo docker compose restart
-==================================================
-EOF
-
-# 11. Build and Start the Stack
-echo "--- 🚀 Building and Starting Containers ---"
-sudo docker compose up -d --build
-
-echo ""
-echo "--- ✅ SUCCESS! INSTALLATION COMPLETE ---"
-echo "Web UI: http://$IP_ADDR:5000"
-echo "User Guide saved to: $PROJECT_DIR/HELP.txt"
-echo ""
-echo "--- 🚨 FINAL STEP: SECURE REMOTE ACCESS ---"
-echo "If this is a fresh Tailscale install, please run:"
-echo "sudo tailscale up"
+RUN git clone --
