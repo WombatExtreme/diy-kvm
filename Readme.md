@@ -7,13 +7,16 @@ A professional-grade, self-healing KVM-over-IP appliance repurposed from legacy 
 
 ---
 
+<br>
+
 ## 🚀 QUICK INSTALL (ONE-LINER)
 
 To deploy the **Wombat-KVM** on a fresh Debian 13 host, copy and paste this command into your terminal:
 
+<br>
+
 ```bash
 curl -sSL [https://raw.githubusercontent.com/WombatExtreme/diy-kvm/main/deploy_kvm.sh](https://raw.githubusercontent.com/WombatExtreme/diy-kvm/main/deploy_kvm.sh) | bash
-
 
 🛠️ PROJECT ARCHITECTURE
 
@@ -46,8 +49,6 @@ Watchdog	./watchdog.sh	Checks stream health; auto-restarts on failure.
 Maintenance	./maintenance.sh	Deletes logs/screenshots > 7 days old.
 Rebuilder	./build_wombat.sh	Forces a clean wipe and fresh container build.
 🔬 FINAL BETA CHECKLIST (3-DAY BURN-IN)
-
-Execute these tests to verify "Wombat Extreme" stability.
 
     [ ] Thermal Soak: Run 24h with lid closed. Use GEN DEBUG LOG to verify CPU temps.
 
