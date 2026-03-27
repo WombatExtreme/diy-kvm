@@ -73,4 +73,3 @@ watch -n 5 "echo '--- THERMALS ---'; cat /sys/class/thermal/thermal_zone0/temp; 
 Wombat Extreme Technologies 30 Years of PC Excellence.
 
 
-**Would you like me to generate the actual `deploy_kvm.sh` script** so the curl command in your new README actually has a file to download and run?
